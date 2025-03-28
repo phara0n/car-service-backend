@@ -1,18 +1,18 @@
 class Appointment < ApplicationRecord
   belongs_to :customer
   belongs_to :car
-  has_and_belongs_to_many :services
+  has_many :appointment_services, dependent: :destroy
+  has_many :services, through: :appointment_services
   
   validates :date, presence: true
   validates :time, presence: true
-  validates :status, presence: true, inclusion: { in: %w[pending confirmed completed cancelled] }
+  validates :status, presence: true, inclusion: { in: %w[scheduled in_progress completed] }
   
-  scope :upcoming, -> { where('date >= ?', Date.current).order(date: :asc, time: :asc) }
-  scope :past, -> { where('date < ?', Date.current).order(date: :desc, time: :desc) }
-  scope :pending, -> { where(status: 'pending') }
-  scope :confirmed, -> { where(status: 'confirmed') }
+  scope :upcoming, -> { where('date >= ?', Date.today).order(date: :asc) }
+  scope :past, -> { where('date < ?', Date.today).order(date: :desc) }
   scope :completed, -> { where(status: 'completed') }
-  scope :cancelled, -> { where(status: 'cancelled') }
+  scope :scheduled, -> { where(status: 'scheduled') }
+  scope :in_progress, -> { where(status: 'in_progress') }
   
   # Update car mileage when appointment is completed
   after_update :update_car_mileage, if: -> { saved_change_to_status? && status == 'completed' }

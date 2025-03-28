@@ -39,6 +39,15 @@ class Car < ApplicationRecord
     mileage_diff / days_diff
   end
   
+  scope :due_for_service, -> { 
+    joins(:service_schedules)
+      .where('service_schedules.next_service_date <= ?', 7.days.from_now)
+      .or(
+        where('cars.current_mileage >= service_schedules.next_service_mileage')
+      )
+      .distinct 
+  }
+  
   private
   
   def requires_tunisian_fields?

@@ -28,107 +28,175 @@ admin = User.find_or_create_by(email: 'admin@example.com') do |user|
 end
 puts "Created admin user: #{admin.email}"
 
-# Create common services
-services = [
-  { name: 'Oil Change', description: 'Full synthetic oil change', price: 49.99, duration: 30, active: true },
-  { name: 'Tire Rotation', description: 'Rotate and balance all tires', price: 29.99, duration: 45, active: true },
-  { name: 'Brake Inspection', description: 'Full inspection of brake system', price: 39.99, duration: 60, active: true },
-  { name: 'Full Service', description: 'Complete car check-up and maintenance', price: 199.99, duration: 180, active: true },
-  { name: 'Air Filter Replacement', description: 'Replace engine air filter', price: 19.99, duration: 15, active: true },
-  { name: 'Cabin Filter Replacement', description: 'Replace cabin air filter', price: 24.99, duration: 20, active: true },
-  { name: 'Transmission Fluid Change', description: 'Replace transmission fluid', price: 129.99, duration: 60, active: true },
-  { name: 'Coolant Flush', description: 'Flush and replace coolant', price: 89.99, duration: 45, active: true },
-  { name: 'Wiper Blade Replacement', description: 'Replace front and rear wiper blades', price: 29.99, duration: 15, active: true }
+# Create standard services
+standard_services = [
+  { name: 'Oil Change', description: 'Full synthetic oil change service', price: 120.00, duration: 45 },
+  { name: 'Brake Service', description: 'Brake pad replacement and rotor inspection', price: 250.00, duration: 90 },
+  { name: 'Tire Rotation', description: 'Rotate and balance all tires', price: 80.00, duration: 45 },
+  { name: 'Engine Tune-up', description: 'Complete engine tune-up service', price: 300.00, duration: 120 }
 ]
 
-services.each do |service_attrs|
-  service = Service.find_or_create_by(name: service_attrs[:name]) do |s|
-    s.description = service_attrs[:description]
-    s.price = service_attrs[:price]
-    s.duration = service_attrs[:duration]
-    s.active = service_attrs[:active]
+# Create Tunisian-specific services
+tunisian_services = [
+  { name: 'Visite Technique', description: 'Technical inspection required by Tunisian law', price: 80.00, duration: 60 },
+  { name: 'Renouvellement de Vignette', description: 'Road tax renewal service', price: 45.00, duration: 30 },
+  { name: 'Renouvellement d\'Assurance', description: 'Insurance renewal assistance', price: 60.00, duration: 45 }
+]
+
+# Create all services
+(standard_services + tunisian_services).each do |service_data|
+  Service.find_or_create_by!(name: service_data[:name]) do |service|
+    service.description = service_data[:description]
+    service.price = service_data[:price]
+    service.duration = service_data[:duration]
   end
-  puts "Created service: #{service.name}"
 end
 
-# Create 3 sample customers with cars
-3.times do |i|
-  # Create user for customer
-  user = User.find_or_create_by(email: "customer#{i+1}@example.com") do |u|
-    u.name = "Customer #{i+1}"
-    u.role = 'customer'
-    u.is_superadmin = false
-    u.password = 'password123'
-    u.password_confirmation = 'password123'
-  end
-  
-  # Create customer
-  customer = Customer.find_or_create_by(email: user.email) do |c|
-    c.name = user.name
-    c.phone = "555-123-#{1000 + i}"
-    c.address = "#{100 + i} Main St, Anytown, AN"
-    c.user = user
-    c.national_id = (10000000 + i).to_s
-    c.tax_number = (1000000 + i).to_s
-    c.region_code = "TUN#{i+1}"
-  end
-  puts "Created customer: #{customer.name}"
-  
-  # Create 2 cars for each customer
-  2.times do |j|
-    car = Car.find_or_create_by(
+# Create sample customers
+10.times do |i|
+  user = User.create!(
+    email: "customer#{i+1}@example.com",
+    password: 'password123',
+    password_confirmation: 'password123',
+    name: "Customer #{i+1}",
+    role: 'customer'
+  )
+
+  customer = Customer.create!(
+    name: user.name,
+    email: user.email,
+    phone: "+216 #{rand(10_000_000..99_999_999)}",
+    address: "#{rand(1..100)} Rue #{['Habib Bourguiba', 'Ibn Khaldoun', 'Charles de Gaulle'].sample}, #{['Tunis', 'Sfax', 'Sousse'].sample}",
+    national_id: rand(10_000_000..99_999_999).to_s,
+    tax_number: rand(1_000_000..9_999_999).to_s,
+    region_code: ['TUN', 'SFA', 'SOU'].sample,
+    user: user
+  )
+
+  # Create 1-3 cars for each customer
+  rand(1..3).times do
+    car = Car.create!(
       customer: customer,
-      license_plate: "ABC-#{100 + i}#{j}"
-    ) do |c|
-      c.make = ['Toyota', 'Honda', 'Ford', 'Volkswagen', 'BMW'].sample
-      c.model = ['Corolla', 'Civic', 'F-150', 'Golf', '3-Series'].sample
-      c.year = rand(2010..2023)
-      c.vin = "VIN#{i}#{j}#{SecureRandom.hex(8)}"
-      c.initial_mileage = rand(10000..50000)
-      c.current_mileage = rand(c.initial_mileage..(c.initial_mileage + 20000))
-      c.customs_clearance_number = "CC#{i}#{j}#{rand(10000..99999)}"
-      c.technical_visit_date = Date.today + rand(30..180).days
-      c.insurance_category = ['A', 'B', 'C'].sample
-    end
-    puts "Created car: #{car.make} #{car.model} (#{car.year}) for #{customer.name}"
-    
-    # Create service schedules for each car
-    ['Oil Change', 'Tire Rotation', 'Brake Inspection'].each do |service_type|
-      schedule = ServiceSchedule.find_or_create_by(
+      make: ['Peugeot', 'Volkswagen', 'Renault', 'Citroën', 'Fiat'].sample,
+      model: ['208', 'Golf', 'Clio', 'C3', '500'].sample,
+      year: rand(2015..2024),
+      vin: SecureRandom.hex(8).upcase,
+      license_plate: "#{rand(1..199)} TU #{rand(1000..9999)}",
+      initial_mileage: rand(0..50000),
+      current_mileage: rand(50001..100000),
+      customs_clearance_number: "TN-#{rand(2015..2024)}-#{rand(10000..99999)}",
+      technical_visit_date: Date.today + rand(-180..180),
+      insurance_category: ['A', 'B', 'C'].sample
+    )
+
+    # Create service schedules for the car
+    ['Oil Change', 'Tire Rotation', 'Brake Service', 'Visite Technique'].each do |service_name|
+      ServiceSchedule.create!(
         car: car,
-        service_type: service_type
-      ) do |s|
-        s.mileage_interval = case service_type
-                            when 'Oil Change' then 5000
-                            when 'Tire Rotation' then 10000
-                            when 'Brake Inspection' then 15000
+        service_type: service_name,
+        mileage_interval: case service_name
+                         when 'Oil Change' then 10000
+                         when 'Tire Rotation' then 20000
+                         when 'Brake Service' then 40000
+                         when 'Visite Technique' then nil
+                         end,
+        time_interval_months: case service_name
+                            when 'Oil Change' then 6
+                            when 'Tire Rotation' then 12
+                            when 'Brake Service' then 24
+                            when 'Visite Technique' then 12
                             end
-        s.time_interval = case service_type
-                        when 'Oil Change' then 90
-                        when 'Tire Rotation' then 180
-                        when 'Brake Inspection' then 365
-                        end
-      end
-      puts "Created service schedule: #{schedule.service_type} for #{car.make} #{car.model}"
+      )
     end
+  end
+end
+
+# Get references for creating appointments
+services = Service.all
+customers = Customer.all
+cars = Car.all
+
+# Create sample appointments for the next 30 days
+30.times do
+  customer = customers.sample
+  car = customer.cars.sample
+  
+  # Random appointment date within next 30 days
+  date = Date.today + rand(0..30)
+  
+  # Random time between 8 AM and 5 PM
+  time = Time.new(2000, 1, 1, rand(8..16), [0, 30].sample, 0)
+  
+  # Create appointment with 1-3 random services
+  appointment = Appointment.create!(
+    customer: customer,
+    car: car,
+    date: date,
+    time: time,
+    status: ['scheduled', 'in_progress', 'completed'].sample,
+    notes: ['Regular maintenance', 'Customer reported issues', 'Follow-up service'].sample
+  )
+  
+  # Add random services to appointment (avoiding duplicates)
+  services.sample(rand(1..3)).each do |service|
+    appointment.services << service unless appointment.services.include?(service)
+  end
+end
+
+# Create some completed appointments in the past for history
+15.times do
+  customer = customers.sample
+  car = customer.cars.sample
+  
+  # Random appointment date within last 30 days
+  date = Date.today + rand(-30..-1)
+  
+  # Random time between 8 AM and 5 PM
+  time = Time.new(2000, 1, 1, rand(8..16), [0, 30].sample, 0)
+  
+  # Create completed appointment
+  appointment = Appointment.create!(
+    customer: customer,
+    car: car,
+    date: date,
+    time: time,
+    status: 'completed',
+    notes: ['Regular maintenance completed', 'Issues resolved', 'Service completed successfully'].sample
+  )
+  
+  # Add random services to appointment (avoiding duplicates)
+  services.sample(rand(1..3)).each do |service|
+    appointment.services << service unless appointment.services.include?(service)
+  end
+end
+
+# Update cars with mileage records
+cars.each do |car|
+  last_mileage = car.initial_mileage
+  
+  # Create 3-5 mileage records per car
+  rand(3..5).times do
+    recorded_at = Time.current + rand(-180..0).days
+    new_mileage = last_mileage + rand(1000..5000)
     
-    # Create an appointment for each car
-    status = ['pending', 'confirmed', 'completed', 'cancelled'].sample
-    appointment = Appointment.find_or_create_by(
-      customer: customer,
+    MileageRecord.create!(
       car: car,
-      date: Date.today + rand(-30..30).days,
-      time: Time.parse("#{rand(8..17)}:00"),
-      status: status,
-      notes: status == 'completed' ? "Current mileage: #{car.current_mileage + rand(100..500)}" : nil
+      mileage: new_mileage,
+      recorded_at: recorded_at,
+      notes: ['Regular update', 'Service check', 'Customer reported'].sample
     )
     
-    # Add services to appointment
-    services_to_add = Service.all.sample(rand(1..3))
-    appointment.services << services_to_add
-    
-    puts "Created appointment for #{car.make} #{car.model} with #{appointment.services.count} services"
+    last_mileage = new_mileage
   end
+  
+  # Update car's current mileage
+  car.update!(current_mileage: last_mileage)
 end
 
-puts "Seeding completed!"
+puts "Seed data created successfully!"
+puts "Created #{Service.count} services"
+puts "Created #{Customer.count} customers"
+puts "Created #{Car.count} cars"
+puts "Created #{ServiceSchedule.count} service schedules"
+puts "Created #{Appointment.count} appointments"
+puts "Created #{MileageRecord.count} mileage records"

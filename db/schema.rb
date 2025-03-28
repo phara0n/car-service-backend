@@ -10,9 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_03_27_174931) do
+ActiveRecord::Schema[8.0].define(version: 2025_03_28_125121) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "appointment_services", force: :cascade do |t|
+    t.bigint "appointment_id", null: false
+    t.bigint "service_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["appointment_id"], name: "index_appointment_services_on_appointment_id"
+    t.index ["service_id"], name: "index_appointment_services_on_service_id"
+  end
 
   create_table "appointments", force: :cascade do |t|
     t.bigint "customer_id", null: false
@@ -84,11 +93,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_27_174931) do
     t.bigint "car_id", null: false
     t.string "service_type"
     t.integer "mileage_interval"
-    t.integer "time_interval"
+    t.integer "time_interval_months"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.date "predicted_next_service_date"
+    t.date "next_service_date"
+    t.integer "next_service_mileage"
     t.index ["car_id"], name: "index_service_schedules_on_car_id"
+    t.index ["next_service_date"], name: "index_service_schedules_on_next_service_date"
+    t.index ["next_service_mileage"], name: "index_service_schedules_on_next_service_mileage"
   end
 
   create_table "services", force: :cascade do |t|
@@ -112,6 +125,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_27_174931) do
     t.index ["email"], name: "index_users_on_email"
   end
 
+  add_foreign_key "appointment_services", "appointments"
+  add_foreign_key "appointment_services", "services"
   add_foreign_key "appointments", "cars"
   add_foreign_key "appointments", "customers"
   add_foreign_key "appointments_services", "appointments"

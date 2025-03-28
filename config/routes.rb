@@ -46,6 +46,16 @@ Rails.application.routes.draw do
         get 'service_predictions', to: 'service_predictions#index'
         get 'service_predictions/cars/:car_id', to: 'service_predictions#car_predictions'
       end
+
+      # Dashboard routes
+      namespace :dashboard do
+        get 'stats', to: 'dashboard#stats'
+        get 'mileage_trends', to: 'dashboard#mileage_trends'
+        get 'service_distribution', to: 'dashboard#service_distribution'
+        get 'appointment_distribution', to: 'dashboard#appointment_distribution'
+        get 'recent_activity', to: 'dashboard#recent_activity'
+        get 'upcoming_appointments', to: 'dashboard#upcoming_appointments'
+      end
     end
   end
 end

@@ -1,5 +1,5 @@
 class ServiceScheduleSerializer < ApplicationSerializer
-  attributes :service_type, :mileage_interval, :time_interval
+  attributes :service_type, :mileage_interval, :time_interval_months
   
   belongs_to :car
   
