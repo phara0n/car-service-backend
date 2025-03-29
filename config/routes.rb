@@ -21,6 +21,7 @@ Rails.application.routes.draw do
       
       # Shared routes for admin and customer
       resources :customers, only: [:index, :show, :create, :update, :destroy]
+      get 'customers/:customer_id/cars', to: 'customers#cars'
       resources :cars, only: [:index, :show, :create, :update, :destroy]
       resources :appointments, only: [:index, :show, :create, :update, :destroy]
       resources :services, only: [:index, :show, :create, :update, :destroy]

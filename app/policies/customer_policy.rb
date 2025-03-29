@@ -19,6 +19,10 @@ class CustomerPolicy < ApplicationPolicy
     user.superadmin? || user.admin?
   end
   
+  def cars?
+    user.superadmin? || user.admin? || record.user_id == user.id
+  end
+  
   class Scope < Scope
     def resolve
       if user.superadmin? || user.admin?
